@@ -71,9 +71,9 @@ Class GHTK_Shipping {
 
                 $transport = (!empty($transport)) ? $transport : 'road';
 
-                $shipping_price_road = GHTK()->setWeight($weight/1000)->setTransport('road')->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
+                $shipping_price_road = GHTK()->setWeight($weight)->setTransport('road')->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
 
-                $shipping_price_fly = GHTK()->setWeight($weight/1000)->setTransport('fly')->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
+                $shipping_price_fly = GHTK()->setWeight($weight)->setTransport('fly')->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
                 ?>
                 <tr class="ship">
                     <td>
@@ -140,7 +140,7 @@ Class GHTK_Shipping {
             $weight += $item['weight']*$item['qty'];
         }
 
-        $shipping_price = GHTK()->setWeight($weight/1000)->setTransport($transport)->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
+        $shipping_price = GHTK()->setWeight($weight)->setTransport($transport)->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
 
         return $shipping_price;
     }
@@ -170,7 +170,7 @@ Class GHTK_Shipping {
                 $weight += $weight_item*$item->quantity;
             }
 
-            $fee = GHTK()->setWeight($weight/1000)->setTransport('road')->setValue($order->total)->shipAmount($citi, $districts, $ward);
+            $fee = GHTK()->setWeight($weight)->setTransport('road')->setValue($order->total)->shipAmount($citi, $districts, $ward);
             if($fee > 0) {
                 $itemList['road'] = [
                     'label'     => $package['label'].' - đường bộ',
@@ -179,7 +179,7 @@ Class GHTK_Shipping {
                     'value'     => GHTK_KEY.'__road'
                 ];
             }
-            $fee = GHTK()->setWeight($weight/1000)->setTransport('fly')->setValue($order->total)->shipAmount($citi, $districts, $ward);
+            $fee = GHTK()->setWeight($weight)->setTransport('fly')->setValue($order->total)->shipAmount($citi, $districts, $ward);
             if($fee > 0) {
                 $itemList['fly'] = [
                     'label'     => $package['label'].' - đường bay',
@@ -214,7 +214,7 @@ Class GHTK_Shipping {
             $weight += $weight_item*$item->quantity;
         }
 
-        $fee = GHTK()->setWeight($weight/1000)->setTransport($value[1])->setValue($order->total)->shipAmount($citi, $districts, $ward);
+        $fee = GHTK()->setWeight($weight)->setTransport($value[1])->setValue($order->total)->shipAmount($citi, $districts, $ward);
 
         $pick = GHTK()->getPickArea($citi);
 

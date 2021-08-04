@@ -196,7 +196,7 @@ class GHTK_Order  {
             'pick_district' => $this->pick_district,
             'pick_ward'     => $this->pick_ward,
             'pick_tel'      => $this->pick_tel,
-            'weight'        => $this->total_weight,
+            'total_weight'  => $this->total_weight,
             'tel'           => $this->tel,
             'name'          => $this->name,
             'address'       => $this->address,
