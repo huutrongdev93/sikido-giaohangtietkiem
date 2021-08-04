@@ -13,6 +13,7 @@ Class GHTK_Shipping {
     }
 
     static public function config($result) {
+
         $GHTK = InputBuilder::post('ghtk');
 
         $config = GHTK::config();
@@ -36,6 +37,71 @@ Class GHTK_Shipping {
         Option::update('cart_shipping', $shipping);
 
         return $result;
+    }
+
+    static public function service($ship) {
+
+        $shipping = InputBuilder::Post('shipping_type');
+
+        if($shipping == GHTK_KEY) {
+
+            $package = InputBuilder::Post();
+
+            if(!empty($package['show-form-shipping']) && $package['show-form-shipping'] == 'on') {
+                $citi 		= InputBuilder::Post('shipping_city');
+                $districts 	= InputBuilder::Post('shipping_districts');
+                $ward 		= InputBuilder::Post('shipping_ward');
+            }
+            else {
+                $citi 		= InputBuilder::Post('billing_city');
+                $districts 	= InputBuilder::Post('billing_districts');
+                $ward 		= InputBuilder::Post('billing_ward');
+            }
+
+            if(!empty($citi) && !empty($districts)) {
+
+                $weight = 0;
+
+                foreach (Scart::getItems() as $key => $item) {
+                    if($item['weight'] == 0) $item['weight'] = 100;
+                    $weight += $item['weight']*$item['qty'];
+                }
+
+                $transport = InputBuilder::Post('shipping_ghtk_transport');
+
+                $transport = (!empty($transport)) ? $transport : 'road';
+
+                $shipping_price_road = GHTK()->setWeight($weight/1000)->setTransport('road')->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
+
+                $shipping_price_fly = GHTK()->setWeight($weight/1000)->setTransport('fly')->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
+                ?>
+                <tr class="ship">
+                    <td>
+                        <div class="checkbox" style="margin:0 0 0 20px;">
+                            <label style="padding:0;">
+                                <input type="radio" value="road" <?php echo ($transport == 'road') ? 'checked' : '';?> name="shipping_ghtk_transport"> Đường bộ
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <strong id="ship-road"><?php echo number_format($shipping_price_road)._price_currency();?></strong>
+                    </td>
+                </tr>
+                <tr class="ship">
+                    <td>
+                        <div class="checkbox" style="margin:0 0 0 20px;">
+                            <label style="padding:0;">
+                                <input type="radio" value="fly" <?php echo ($transport == 'fly') ? 'checked' : '';?> name="shipping_ghtk_transport"> Đường bay
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <strong id="ship-fly"><?php echo number_format($shipping_price_fly)._price_currency();?></strong>
+                    </td>
+                </tr>
+                <?php
+            }
+        }
     }
 
     static public function calculate($package) {
@@ -63,6 +129,8 @@ Class GHTK_Shipping {
             $ward           = $package['billing_ward'];
         }
 
+        $transport = (!empty($package['shipping_ghtk_transport'])) ? $package['shipping_ghtk_transport'] : 'road';
+
         if(empty($citi) || empty($districts)) return $shipping_price;
 
         $weight = 0;
@@ -72,7 +140,7 @@ Class GHTK_Shipping {
             $weight += $item['weight']*$item['qty'];
         }
 
-        $shipping_price = GHTK()->setWeight($weight)->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
+        $shipping_price = GHTK()->setWeight($weight/1000)->setTransport($transport)->setValue(Scart::total())->shipAmount($citi, $districts, $ward);
 
         return $shipping_price;
     }
@@ -102,14 +170,22 @@ Class GHTK_Shipping {
                 $weight += $weight_item*$item->quantity;
             }
 
-            $service = GHTK()->setWeight($weight)->setValue($order->total)->shipAmount($citi, $districts, $ward, true);
-
-            if(have_posts($service)) {
-                $itemList[$service->cost_id] = [
-                    'label'     => $package['label'].' - '.$service->name,
-                    'fee'       => $service->fee,
+            $fee = GHTK()->setWeight($weight/1000)->setTransport('road')->setValue($order->total)->shipAmount($citi, $districts, $ward);
+            if($fee > 0) {
+                $itemList['road'] = [
+                    'label'     => $package['label'].' - đường bộ',
+                    'fee'       => number_format($fee),
                     'expected_delivery_time' => 'N/A',
-                    'value'     => GHTK_KEY.'__'.$service->cost_id
+                    'value'     => GHTK_KEY.'__road'
+                ];
+            }
+            $fee = GHTK()->setWeight($weight/1000)->setTransport('fly')->setValue($order->total)->shipAmount($citi, $districts, $ward);
+            if($fee > 0) {
+                $itemList['fly'] = [
+                    'label'     => $package['label'].' - đường bay',
+                    'fee'       => number_format($fee),
+                    'expected_delivery_time' => 'N/A',
+                    'value'     => GHTK_KEY.'__fly'
                 ];
             }
         }
@@ -138,7 +214,7 @@ Class GHTK_Shipping {
             $weight += $weight_item*$item->quantity;
         }
 
-        $fee = GHTK()->setWeight($weight)->setValue($order->total)->shipAmount($citi, $districts, $ward);
+        $fee = GHTK()->setWeight($weight/1000)->setTransport($value[1])->setValue($order->total)->shipAmount($citi, $districts, $ward);
 
         $pick = GHTK()->getPickArea($citi);
 
@@ -149,10 +225,12 @@ Class GHTK_Shipping {
         Order::updateMeta($order->id, '_shipping_label', $package['label']);
 
         if(have_posts($pick)) {
-            Order::updateMeta($order->id, 'GHTK_info', ['PickID' => $pick->ghtk_id]);
+            Order::updateMeta($order->id, 'GHTK_info', ['PickID' => $pick->ghtk_id, 'transport' => $value[1]]);
         }
     }
 }
+
+add_action('checkout_shipping_'.GHTK_KEY.'_template', 'GHTK_Shipping::service', 10, 1);
 
 Class GHTK_Checkout {
 
@@ -188,9 +266,12 @@ Class GHTK_Checkout {
 
             $pick = GHTK()->getPickArea($citi);
 
+            $transport = (!empty(InputBuilder::post('shipping_ghtk_transport'))) ? InputBuilder::post('shipping_ghtk_transport') : 'road';
+
             if(have_posts($pick)) {
                 $metadata_order['GHTK_info'] = [
                     'PickID' => $pick->ghtk_id,
+                    'transport' => $transport,
                 ];
             }
         }

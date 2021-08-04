@@ -92,8 +92,8 @@
                 <div class="form-group row">
                     <div class="col-md-4">Hình thức vận chuyển</div>
                     <div class="col-md-8 checkbox">
-                        <label class="pd-none"> <input name="ghtk[transport]" type="radio" value="road" class="ghtk_transport" checked> Đường bộ </label>
-                        <label class=""> <input name="ghtk[transport]" type="radio" value="fly" class="ghtk_transport"> Đường bay </label>
+                        <label class="pd-none"> <input name="ghtk[transport]" type="radio" value="road" class="ghtk_transport" <?php echo ($order->GHTK_info['transport'] == 'road') ? 'checked' : '';?>> Đường bộ </label>
+                        <label class=""> <input name="ghtk[transport]" type="radio" value="fly" class="ghtk_transport" <?php echo ($order->GHTK_info['transport'] == 'fly') ? 'checked' : '';?>> Đường bay </label>
                     </div>
                 </div>
 
@@ -229,7 +229,6 @@
     });
 
     $(document).on('change', 'input.ghtk_transport', function() {
-
         GHTK_order_review();
     });
 

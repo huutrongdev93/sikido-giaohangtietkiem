@@ -48,6 +48,7 @@ Class GHTK_Order_Action {
         if(empty($order->_shipping_type) || $order->_shipping_type != GHTK_KEY) return;
         $waybill_code = Order::getMeta( $order->id, 'waybill_code', true );
         if(empty($waybill_code)) {
+            if(empty($order->GHTK_info['transport'])) $order->GHTK_info['transport'] = 'road';
             $text = 'Tạo vận đơn GHTK';
             ?>
             <button type="button" class="btn btn-default btn_ghtk_order__create" data-id="<?php echo $order->id; ?>">

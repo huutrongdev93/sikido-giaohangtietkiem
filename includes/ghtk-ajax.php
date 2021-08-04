@@ -37,6 +37,8 @@ if(!function_exists('admin_ajax_ghtk_connect')) {
 
                 Option::update('shipping_ghtk_default_html', true);
 
+                CacheHandler::delete('GHTK_Branch');
+
                 $result['status']  = 'success';
             }
             else {
