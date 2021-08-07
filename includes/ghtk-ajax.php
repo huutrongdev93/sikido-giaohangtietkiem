@@ -136,7 +136,7 @@ if(!function_exists('admin_ajax_ghtk_order_review')) {
                 $weight = 0;
 
                 foreach ($order->items as $key => $val):
-                    $weight += (int)Order::getItemMeta($val->id, 'weight', true)/1000*$val->quantity;
+                    $weight += (int)Order::getItemMeta($val->id, 'weight', true)*$val->quantity;
                 endforeach;
 
                 $shipping_price = GHTK()
