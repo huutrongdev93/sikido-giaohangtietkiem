@@ -25,7 +25,7 @@ Class GHTK {
 
     public function __construct() {
         $opts = static::config();
-        $this->list_pick = Branch::gets(['where' => ['ghtk_id <>' => 0, 'status' => 'working']]);
+        $this->list_pick = Branch::gets(Qr::set('ghtk_id', '<>', 0)->where('status', 'working'));
         foreach ($this->list_pick as $key => $pick) {
             $this->list_pick[$key]->area = @unserialize($pick->area);
         }

@@ -1,19 +1,19 @@
 <?php
 function ghtk_sync_order_status() {
 
-    $hash       = xss_clean(InputBuilder::get('hash'));
+    $hash       = xss_clean(Request::get('hash'));
 
-    $code       = (int)xss_clean(InputBuilder::get('code'));
+    $code       = (int)xss_clean(Request::get('code'));
 
-    $status     = (int)xss_clean(InputBuilder::get('status'));
+    $status     = (int)xss_clean(Request::get('status'));
 
-    $mavandon   = xss_clean(InputBuilder::get('label'));
+    $mavandon   = xss_clean(Request::get('label'));
 
     $config = GHTK::config();
 
     if($hash == md5($config['code'].'sikido_connect_ghtk')) {
 
-        $order = Order::get(['where' => ['code' => $code]]);
+        $order = Order::get(Qr::set('code', $code));
 
         if(have_posts($order) && isset($order->waybill_code)) {
 
@@ -40,7 +40,7 @@ function ghtk_sync_order_status() {
                         'message' => '<span class="hs-usname"><b>GHTK</b></span> đã cập nhật vận đơn thành <span class="hs-ghtkcode"><b>' . GHTK::status($status) . '</b></span>',
                     ];
 
-                    Order::insertHistory($history);
+                    OrderHistory::insert($history);
 
                     Order::updateMeta($order->id, 'GHTK_status', $status);
                 }

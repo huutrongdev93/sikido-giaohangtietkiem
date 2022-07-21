@@ -5,13 +5,13 @@ Plugin class    : giaohangtietkiem
 Plugin uri      : http://sikido.vn
 Description     : Giaohangtietkiem.vn cung cấp dịch vụ giao hàng giờ và thu tiền hộ (same-day delivery và cash on delivery) uy tín, đáng tin cậy.
 Author          : Nguyễn Hữu Trọng
-Version         : 1.3.0
+Version         : 1.4.0
 */
-define( 'GHTK_NAME', 'giaohangtietkiem' );
+const GHTK_NAME = 'giaohangtietkiem';
 
-define( 'GHTK_PATH', Path::plugin( GHTK_NAME ));
+const GHTK_KEY = 'ghtk';
 
-define( 'GHTK_KEY', 'ghtk');
+define('GHTK_PATH', Path::plugin(GHTK_NAME));
 
 class giaohangtietkiem {
 

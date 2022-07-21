@@ -121,9 +121,9 @@ Class GHTK_Order_Action {
 
         if( !Template::isPage('plugins_index') ) return;
 
-        if(InputBuilder::Get('page') != 'ghtk_order_print' ) return;
+        if(Request::Get('page') != 'ghtk_order_print' ) return;
 
-        $id = (int)InputBuilder::Get('id');
+        $id = (int)Request::Get('id');
 
         $ghtk_id = Order::getMeta( $id,'waybill_code', true);
 

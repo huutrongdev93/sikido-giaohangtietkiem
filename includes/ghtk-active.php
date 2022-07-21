@@ -8,26 +8,28 @@ class GHTK_Activator {
     }
 
     public static function createDatabase() {
-        $model = get_model();
-        if($model->db_table_exists('branchs')) {
-            $model->query("ALTER TABLE `".CLE_PREFIX."branchs` ADD `ghtk_id` INT NULL DEFAULT 0 AFTER `id`;");
-            $model->query("ALTER TABLE `".CLE_PREFIX."branchs` ADD `ghtk_name` VARCHAR(255) NULL NULL DEFAULT '' AFTER `id`;");
+        $model = model();
+        if($model::schema()->hasTable('branchs')) {
+            if(!$model::schema()->hasColumns('branchs', ['ghtk_id', 'ghtk_name'])) {
+                $model::schema()->table('branchs', function ($table) {
+                    $table->integer('ghtk_id')->default(0)->after('id');
+                    $table->string('ghtk_name', 255)->nullable()->after('id');
+                });
+            }
         }
     }
 
     public static function createRouter() {
-        $model = get_model();
-        $model->settable('routes');
-        $count = $model->count_where(array('slug' => 'ghtk-syscn', 'plugin' => 'giaohangtietkiem'));
+        $count = Routes::count(Qr::set('slug', 'ghtk-syscn')->where('plugin', 'giaohangtietkiem'));
         if($count == 0) {
-            $model->add(array(
+            Routes::insert([
                 'slug'        => 'ghtk-syscn',
-                'controller'  => 'frontend_home/home/page/',
+                'controller'  => 'frontend/home/page/',
                 'plugin'      => 'giaohangtietkiem',
                 'object_type' => 'giaohangtietkiem',
                 'directional' => 'ghtk_sync_order_status',
                 'callback' 	  => 'ghtk_sync_order_status',
-            ));
+            ]);
         }
     }
 

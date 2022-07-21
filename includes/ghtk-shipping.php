@@ -14,17 +14,17 @@ Class GHTK_Shipping {
 
     static public function config($result) {
 
-        $GHTK = InputBuilder::post('ghtk');
+        $GHTK = Request::post('ghtk');
 
         $config = GHTK::config();
 
-        $config['enabled']        = (empty(InputBuilder::post('enabled'))) ? 0 : 1;
+        $config['enabled']        = (empty(Request::post('enabled'))) ? 0 : 1;
 
-        $config['title']          = InputBuilder::post('title');
+        $config['title']          = Request::post('title');
 
-        $config['img']            = FileHandler::handlingUrl(InputBuilder::post('img'));
+        $config['img']            = FileHandler::handlingUrl(Request::post('img'));
 
-        $config['price_default']  = InputBuilder::post('price_default');
+        $config['price_default']  = Request::post('price_default');
 
         $config['weight']         = $GHTK['weight'];
 
@@ -41,21 +41,21 @@ Class GHTK_Shipping {
 
     static public function service($ship) {
 
-        $shipping = InputBuilder::Post('shipping_type');
+        $shipping = Request::Post('shipping_type');
 
         if($shipping == GHTK_KEY) {
 
-            $package = InputBuilder::Post();
+            $package = Request::Post();
 
             if(!empty($package['show-form-shipping']) && $package['show-form-shipping'] == 'on') {
-                $citi 		= InputBuilder::Post('shipping_city');
-                $districts 	= InputBuilder::Post('shipping_districts');
-                $ward 		= InputBuilder::Post('shipping_ward');
+                $citi 		= Request::Post('shipping_city');
+                $districts 	= Request::Post('shipping_districts');
+                $ward 		= Request::Post('shipping_ward');
             }
             else {
-                $citi 		= InputBuilder::Post('billing_city');
-                $districts 	= InputBuilder::Post('billing_districts');
-                $ward 		= InputBuilder::Post('billing_ward');
+                $citi 		= Request::Post('billing_city');
+                $districts 	= Request::Post('billing_districts');
+                $ward 		= Request::Post('billing_ward');
             }
 
             if(!empty($citi) && !empty($districts)) {
@@ -67,7 +67,7 @@ Class GHTK_Shipping {
                     $weight += $item['weight']*$item['qty'];
                 }
 
-                $transport = InputBuilder::Post('shipping_ghtk_transport');
+                $transport = Request::Post('shipping_ghtk_transport');
 
                 $transport = (!empty($transport)) ? $transport : 'road';
 
@@ -255,18 +255,18 @@ Class GHTK_Checkout {
 
         if(!empty($metadata_order['_shipping_type']) && $metadata_order['_shipping_type'] == GHTK_KEY) {
 
-            $shipping   = Str::clear(InputBuilder::post('show-form-shipping'));
+            $shipping   = Str::clear(Request::post('show-form-shipping'));
 
             if( !empty($shipping) && $shipping == 'on' ) {
-                $citi = InputBuilder::post('shipping_city');
+                $citi = Request::post('shipping_city');
             }
             else {
-                $citi  = InputBuilder::post('billing_city');
+                $citi  = Request::post('billing_city');
             }
 
             $pick = GHTK()->getPickArea($citi);
 
-            $transport = (!empty(InputBuilder::post('shipping_ghtk_transport'))) ? InputBuilder::post('shipping_ghtk_transport') : 'road';
+            $transport = (!empty(Request::post('shipping_ghtk_transport'))) ? Request::post('shipping_ghtk_transport') : 'road';
 
             if(have_posts($pick)) {
                 $metadata_order['GHTK_info'] = [

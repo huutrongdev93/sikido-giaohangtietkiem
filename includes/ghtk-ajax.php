@@ -7,13 +7,13 @@ if(!function_exists('admin_ajax_ghtk_connect')) {
 
         $result['message'] = __('Lưu dữ liệu không thành công');
 
-        if( InputBuilder::post() ) {
+        if( Request::post() ) {
 
-            $user 	= trim(InputBuilder::post('ghtk_user_login'));
+            $user 	= trim(Request::post('ghtk_user_login'));
 
-            $pass 	= trim(InputBuilder::post('ghtk_pass_login'));
+            $pass 	= trim(Request::post('ghtk_pass_login'));
 
-            $mode 	= trim(InputBuilder::post('ghtk_mode'));
+            $mode 	= trim(Request::post('ghtk_mode'));
 
             $config         = GHTK::config();
             $config['mode'] = $mode;
@@ -62,9 +62,9 @@ if(!function_exists('admin_ajax_ghtk_order_html')) {
 
 		$result['message'] = __('Lưu dữ liệu không thành công');
 		
-		if( InputBuilder::post() ) {
+		if( Request::post() ) {
 
-			$id = (int)InputBuilder::post('id');
+			$id = (int)Request::post('id');
 
 			$order = Order::get( $id );
 
@@ -73,10 +73,8 @@ if(!function_exists('admin_ajax_ghtk_order_html')) {
                 $waybill_code = Order::getMeta( $order->id, 'waybill_code', true );
 
                 if(empty($waybill_code)) {
-
                     $config = GHTK::config();
-
-                    $PickAddress = Branch::gets(['where' => ['ghtk_id <>' => 0, 'status' => 'working']]);
+                    $PickAddress = Branch::gets(Qr::set('ghtk_id', '<>', 0)->where('status', 'working'));
                     foreach ($PickAddress as $key => $pick) {
                         $PickAddress[$key]->area = @unserialize($pick->area);
                     }
@@ -111,11 +109,11 @@ if(!function_exists('admin_ajax_ghtk_order_review')) {
 
         $result['message'] = __('Lưu dữ liệu không thành công');
 
-        if( InputBuilder::post() ) {
+        if( Request::post() ) {
 
-            $data = InputBuilder::post('ghtk');
+            $data = Request::post('ghtk');
 
-            $id = (int)InputBuilder::post('id');
+            $id = (int)Request::post('id');
 
             $order = Order::get( $id );
 
@@ -127,7 +125,7 @@ if(!function_exists('admin_ajax_ghtk_order_review')) {
 
                 $transport = trim(Str::clear($data['transport']));
 
-                $branch = Branch::get(['where' => ['ghtk_id' => $pick_id]]);
+                $branch = Branch::get(Qr::set('ghtk_id', $pick_id));
 
                 if(!have_posts($branch)) {
                     $result['message'] = __('Kho hàng không tồn tại'); echo json_encode($result); return false;
@@ -173,11 +171,11 @@ if(!function_exists('admin_ajax_ghtk_order_create')) {
 
 		$result['message'] = __('Lưu dữ liệu không thành công');
 		
-		if( InputBuilder::post() ) {
+		if( Request::post() ) {
 
-			$id 	= (int)InputBuilder::post('id');
+			$id 	= (int)Request::post('id');
 
-			$data 	= InputBuilder::post('ghtk');
+			$data 	= Request::post('ghtk');
 
 			$order = Order::get( $id );
 
@@ -185,7 +183,7 @@ if(!function_exists('admin_ajax_ghtk_order_create')) {
 
                 $pick_id = trim(Str::clear($data['pick_id']));
 
-                $branch = Branch::get(['where' => ['ghtk_id' => $pick_id]]);
+                $branch = Branch::get(Qr::set('ghtk_id', $pick_id));
 
                 if(!have_posts($branch)) {
                     $result['message'] = __('Kho hàng không tồn tại'); echo json_encode($result); return false;
@@ -220,7 +218,7 @@ if(!function_exists('admin_ajax_ghtk_order_create')) {
                         'message'  => '<span class="hs-usname"><b>'.Auth::user()->username.'</b></span> đã tạo vận đơn giao hàng tiết kiệm <span class="hs-ghtkcode"><b>'.$response->order->label.'</b></span>',
                     ];
 
-                    Order::insertHistory($history);
+                    OrderHistory::insert($history);
 
 					$result['status']  = 'success';
 					$result['info']    = $response->order;
