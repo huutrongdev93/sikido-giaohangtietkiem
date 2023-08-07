@@ -1,13 +1,13 @@
 <?php
-if(!function_exists('admin_ajax_ghtk_connect')) {
-
-    function admin_ajax_ghtk_connect($ci, $model) {
+Class GHTKAdminAjax {
+    static function connect($ci, $model): void
+    {
 
         $result['status']  = 'error';
 
         $result['message'] = __('Lưu dữ liệu không thành công');
 
-        if( Request::post() ) {
+        if(Request::post() ) {
 
             $user 	= trim(Request::post('ghtk_user_login'));
 
@@ -16,12 +16,18 @@ if(!function_exists('admin_ajax_ghtk_connect')) {
             $mode 	= trim(Request::post('ghtk_mode'));
 
             $config         = GHTK::config();
+
             $config['mode'] = $mode;
+
             $shipping = shipping_gateways();
+
             $shipping[GHTK_KEY] = $config;
+
             Option::update('cart_shipping', $shipping);
+
             $response = GHTK()->connect($user, $pass, $mode);
-            if(isset($response->success) && $response->success == true) {
+
+            if(isset($response->success) && $response->success) {
 
                 $config = shipping_gateways();
 
@@ -50,9 +56,8 @@ if(!function_exists('admin_ajax_ghtk_connect')) {
         }
         echo json_encode($result);
     }
-
-    Ajax::admin('admin_ajax_ghtk_connect');
 }
+Ajax::admin('GHTKAdminAjax::connect');
 
 if(!function_exists('admin_ajax_ghtk_order_html')) {
 

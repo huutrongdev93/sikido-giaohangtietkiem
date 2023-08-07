@@ -2,17 +2,13 @@
 Class GHTK_Api {
 
     protected static $_instance = null;
-
     private $token;
-
     private $b2c_token;
-
     private $mode = 'sandbox';
-
     private $response;
 
     protected $baseURL = array(
-        'test'   => 'https://services.ghtklab.com',
+        'test'   => 'https://services-staging.ghtklab.com',
         'prod'   => 'https://services.giaohangtietkiem.vn'
     );
 

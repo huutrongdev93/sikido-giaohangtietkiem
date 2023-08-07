@@ -1,38 +1,40 @@
 <?php
 Class GHTK {
-
     protected static $_instance = null;
-
-    private $list_pick;
-
+    private mixed $listPick;
     private $pick;
-
-    private $weight;
-
-    private $value = 0;
-
-    private $transport = 'road'; //road (bộ) , fly (bay)
-
+    private float $weight = 0;
+    private int $value = 0;
+    private string $transport = 'road'; //road (bộ) , fly (bay)
+    private array $products = [];
     private $ship_province;
-
     private $ship_district;
-
     private $ship_ward;
-
-    private $order;
+    private GHTK_Order $order;
+    private $config;
 
     public $response;
-
     public function __construct() {
-        $opts = static::config();
-        $this->list_pick = Branch::gets(Qr::set('ghtk_id', '<>', 0)->where('status', 'working'));
-        foreach ($this->list_pick as $key => $pick) {
-            $this->list_pick[$key]->area = @unserialize($pick->area);
+
+        $this->config = static::config();
+
+        if(class_exists('Branch')) {
+            $this->listPick = Branch::gets(Qr::set()->where('status', 'working'));
+            $branchConnect = $this->config['branchConnect'];
+            foreach ($this->listPick as $key => $pick) {
+                if(!isset($branchConnect[$pick->id])) {
+                    unset($this->listPick[$key]);
+                    continue;
+                }
+                $this->listPick[$key]->area = @unserialize($pick->area);
+                $this->listPick[$key]->ghtkId = $branchConnect[$pick->id];
+            }
         }
-        $this->products = [];
+
         $this->order    = new GHTK_Order();
     }
-    static public function instance() {
+    static function instance(): ?GHTK
+    {
         if (is_null( self::$_instance)) {
             self::$_instance = new self();
         }
@@ -69,7 +71,8 @@ Class GHTK {
         ];
         return Arr::get($status, $key);
     }
-    public function setPick( $pick ) {
+    public function setPick( $pick ): static
+    {
         $this->pick = $pick;
         return $this;
     }
@@ -80,60 +83,75 @@ Class GHTK {
         return GHTK_API()->getsPick();
     }
     public function getPickArea($ship_province) {
-        foreach ($this->list_pick as $pick) {
+
+        $branchConnect = $this->config['branchConnect'];
+
+        foreach ($this->listPick as $pick) {
             if(!isset($pick->area)) continue;
+            if(!isset($branchConnect[$pick->id])) continue;
             if(in_array($ship_province, $pick->area) !== false) return $pick;
         }
 
-        foreach ($this->list_pick as $pick) {
+        foreach ($this->listPick as $pick) {
+            if(!isset($branchConnect[$pick->id])) continue;
             if($pick->default == 1) return $pick;
         }
-        return Arr::first($this->list_pick);
+
+        return Arr::first($this->listPick);
     }
-    public function setWeight( $weight ) {
-        $this->weight = $weight;
+    public function setWeight($weight): static
+    {
+        $this->weight = (float)$weight;
         return $this;
     }
-    public function getWeight() {
+    public function getWeight(): int
+    {
         return $this->weight;
     }
-    public function setValue( $value ) {
+    public function setValue( $value ): static
+    {
         $this->value = $value;
         return $this;
     }
-    public function getValue() {
+    public function getValue(): int
+    {
         return $this->value;
     }
-    public function setTransport( $transport ) {
+    public function setTransport( $transport ): static
+    {
         $this->transport = $transport;
         return $this;
     }
-    public function getTransport() {
+    public function getTransport(): string
+    {
         return $this->transport;
     }
-    public function setShipProvince( $province ) {
+    public function setShipProvince( $province ): static
+    {
         $this->ship_province = $province;
         return $this;
     }
     public function getShipProvince() {
         return $this->ship_province;
     }
-    public function setShipDistrict($district) {
+    public function setShipDistrict($district): static
+    {
         $this->ship_district = $district;
         return $this;
     }
     public function getShipDistrict() {
         return $this->ship_district;
     }
-
-    public function setShipWard($ward) {
+    public function setShipWard($ward): static
+    {
         $this->ship_ward = $ward;
         return $this;
     }
     public function getShipWard() {
         return $this->ship_ward;
     }
-    public function setOrder($order) {
+    public function setOrder($order): static
+    {
         if(!have_posts($order)) return $this;
         if(!have_posts($this->pick)) return $this;
 
@@ -148,7 +166,8 @@ Class GHTK {
                 ->setHamlet('Khác')
                 ->setTel($order->billing_phone)
                 ->setEmail($order->billing_email)
-                ->setValue($order->total - $order->_shipping_price);
+                ->setValue($order->total - $order->_shipping_price)
+                ->setTotalWeight((float)$order->_shipping_info['weight']);
 
         foreach ($order->items as $key => $item) {
 
@@ -165,25 +184,34 @@ Class GHTK {
 
         return $this;
     }
-    public function getOrder() {
+    public function getOrder(): GHTK_Order
+    {
         return $this->order;
     }
-    public function setPickMoney($pick_money) {
+    public function setPickMoney($pick_money): static
+    {
         $this->order->setPickMoney($pick_money);
         return $this;
     }
-    public function setIsFreeship($is_freeship) {
+    public function setIsFreeship($is_freeship): static
+    {
         $this->order->setIsFreeship($is_freeship);
         return $this;
     }
-    public function setNote( $note ) {
+    public function setNote( $note ): static
+    {
         $this->order->setNote($note);
         return $this;
     }
-    public function setOrderTransport( $transport ) {
+    public function setOrderTransport( $transport ): static
+    {
         $this->order->setTransport($transport);
         return $this;
     }
+
+    /**
+     * @throws Exception
+     */
     public function connect($user, $pass, $mode) {
         $Ghtk_Api = new GHTK_Api([
             'token' => self::config('b2cToken'),
@@ -213,7 +241,7 @@ Class GHTK {
 
         return false;
     }
-    public function shipAmount($province = '', $district = '', $ward = '', $getlist = false) {
+    public function shipAmount($province = '', $district = '', $ward = '', $getList = false) {
         if(!empty($province)) $this->ship_province = $province;
         if(!empty($district)) $this->ship_district = $district;
         if(!empty($ward)) $this->ship_ward = $ward;
@@ -224,7 +252,7 @@ Class GHTK {
         if(empty($this->pick->district)) return false;
         if(empty($this->ship_province)) return false;
         if(empty($this->ship_district)) return false;
-        $data = array(
+        $data = [
             "pick_province" => Cart_Location::cities($this->pick->city),
             "pick_district" => Cart_Location::districts($this->pick->city, $this->pick->district),
             "pick_ward"     => Cart_Location::ward($this->pick->district, $this->pick->ward),
@@ -234,14 +262,14 @@ Class GHTK {
             "weight"        => $this->weight,
             "transport"     => $this->transport,
             "value"         => $this->value,
-        );
+        ];
         if(!empty($this->pick->ward)) $data['pick_ward'] = Cart_Location::ward($this->pick->district, $this->pick->ward);
         if(!empty($this->ship_ward)) $data['ward'] = Cart_Location::ward($this->ship_district, $this->ship_ward);
 
         $response = GHTK_API()->shipAmount($data);
 
         if(isset($response->success) && $response->success == 1) {
-            if($getlist == false) return $response->fee->fee;
+            if(!$getList) return $response->fee->fee;
             return $response->fee;
         }
 

@@ -72,7 +72,7 @@ class GHTK_Order  {
     }
 
     public function setPick( $pick ) {
-        $this->pick_name     = $pick->ghtk_name;
+        $this->pick_name     = $pick->email;
         $this->pick_address  = $pick->address;
         $this->pick_province = Cart_Location::cities($pick->city);
         $this->pick_district = Cart_Location::districts($pick->city, $pick->district);
@@ -172,7 +172,9 @@ class GHTK_Order  {
             $total_weight += $data['weight']*$data['quantity'];
         }
 
-        $this->setTotalWeight($total_weight);
+        if($this->total_weight == 0) {
+            $this->setTotalWeight($total_weight);
+        }
 
         return $this;
     }

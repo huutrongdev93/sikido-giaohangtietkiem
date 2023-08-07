@@ -5,10 +5,9 @@ Plugin class    : giaohangtietkiem
 Plugin uri      : http://sikido.vn
 Description     : Giaohangtietkiem.vn cung cấp dịch vụ giao hàng giờ và thu tiền hộ (same-day delivery và cash on delivery) uy tín, đáng tin cậy.
 Author          : Nguyễn Hữu Trọng
-Version         : 1.4.0
+Version         : 2.0.0
 */
 const GHTK_NAME = 'giaohangtietkiem';
-
 const GHTK_KEY = 'ghtk';
 
 define('GHTK_PATH', Path::plugin(GHTK_NAME));
@@ -22,7 +21,6 @@ class giaohangtietkiem {
         $this->loadAssets();
         new GHTK_Checkout();
         new GHTK_Order_Action();
-        new GHTK_Branch_Custom();
         add_filter('shipping_gateways',array($this, 'register'), 10, 2);
     }
 
@@ -31,14 +29,14 @@ class giaohangtietkiem {
 	}
 
     public function deactivate() {
-        $shipping 			= get_option('cart_shipping', []);
+        $shipping 			= Option::get('cart_shipping', []);
         foreach ($shipping as $key => $item) {
             if($key == 'ghtk' && !empty($item['enabled'])) {
                 $shipping[$key]['enabled'] = false;
                 break;
             }
         }
-        update_option('cart_shipping', $shipping);
+        Option::update('cart_shipping', $shipping);
     }
 
     public function uninstall() {
@@ -50,6 +48,7 @@ class giaohangtietkiem {
             'label'         => 'Giao hàng tiết kiệm',
             'description'   => 'Giaohangtietkiem.vn cung cấp dịch vụ giao hàng giờ và thu tiền hộ',
             'class'         => 'GHTK_Shipping',
+            'callback'      => 'GHTK_Shipping::setting',
             'token'         => "",
             'weight'        => 100,
             'mode'          => "test",
@@ -69,7 +68,7 @@ class giaohangtietkiem {
         require_once GHTK_PATH.'/includes/ghtk.order.class.php';
         require_once GHTK_PATH.'/includes/ghtk-ajax.php';
         require_once GHTK_PATH.'/includes/ghtk-webhook.php';
-        require_once GHTK_PATH.'/includes/ghtk-branch.php';
+        //require_once GHTK_PATH.'/includes/ghtk-branch.php';
     }
 
     private function loadAssets() {

@@ -1,14 +1,9 @@
 <?php
     $Form = new FormBuilder();
     $Form
-        ->add('ghtk_user_login', 'email', [
-            'label' => 'Tài khoản',
-        ], '')
-        ->add('ghtk_pass_login', 'password', [
-            'label' => 'Mật khẩu',
-        ], '')
-        ->add('ghtk_mode', 'radio', [
-            'single' => true, 'label' => 'Chế độ',
+        ->add('ghtk_user_login', 'email', ['label' => 'Tài khoản', 'note' => 'Sử dụng email đăng nhập'], '')
+        ->add('ghtk_pass_login', 'password', ['label' => 'Mật khẩu',], '')
+        ->add('ghtk_mode', 'radio', ['single' => true, 'label' => 'Chế độ',
             'options' => [
                 'test' => 'Sandbox (chạy thử nghiệm)',
                 'prod' => 'Production (chạy thực)'
@@ -16,9 +11,7 @@
 ?>
 
 <div class="col-md-12">
-    <div class="form-group">
-        <button type="button" class="btn btn-green js_ghtk_btn__connect">Kết Nối</button>
-    </div>
+    <div class="form-group"><button type="button" class="btn btn-green js_ghtk_btn__connect">Kết Nối</button></div>
 </div>
 
 <style>
@@ -34,18 +27,15 @@
             let data = $(':input', box).serializeJSON();
             let loading = box.find('.loading');
             loading.show();
-            data.action = 'admin_ajax_ghtk_connect';
-            $jqxhr   = $.post(ajax, data, function() {}, 'json');
-            $jqxhr.done(function( data ) {
+            data.action = 'GHTKAdminAjax::connect';
+            $.post(ajax, data, function() {}, 'json').done(function( data ) {
                 loading.hide();
                 show_message(data.message, data.status);
                 if(data.status === 'success') {
                     location.reload(true);
                 }
             });
-
             return false;
-
         });
     });
 </script>
